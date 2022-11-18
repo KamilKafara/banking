@@ -14,5 +14,7 @@ public interface UserEntityPersistence {
 
     UserDTO update(UserDTO userDTO, Long id);
 
-    Optional<UserDTO> getByName(String name);
+    void delete(Long id);
+
+    Optional<UserDTO> getByPesel(Long pesel);
 }
