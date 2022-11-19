@@ -8,6 +8,7 @@ import com.banking.account.mapper.UserMapper;
 import com.banking.account.exception.NotFoundException;
 import com.banking.account.repository.UserEntity;
 import com.banking.account.repository.UserEntityRepository;
+import org.hibernate.validator.internal.constraintvalidators.hv.pl.PESELValidator;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,7 +36,7 @@ class UserEntityPersistenceImpl implements UserEntityPersistence {
     public UserDTO getById(Long id) {
         Optional<UserEntity> userEntity = userEntityRepository.findById(id);
         if (userEntity.isEmpty()) {
-            throw new NotFoundException("Not found post with this id {" + id + "}.");
+            throw new NotFoundException("Not found user with this id {" + id + "}.");
         }
         return userMapper.toDTO(userEntity.get());
     }
@@ -72,7 +73,7 @@ class UserEntityPersistenceImpl implements UserEntityPersistence {
 //        new PESELValidator().isCheckDigitValid();
         Optional<UserEntity> userEntity = userEntityRepository.findByPesel(pesel);
         if (userEntity.isEmpty()) {
-            throw new NotFoundException("Not found post with this id {" + pesel + "}.");
+            throw new NotFoundException("Not found user with this pesel {" + pesel + "}.");
         }
         return userMapper.toDTO(userEntity.get());
     }

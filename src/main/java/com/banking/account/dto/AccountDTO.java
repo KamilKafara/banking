@@ -9,5 +9,6 @@ import java.math.BigDecimal;
 public class AccountDTO {
     private Long id;
     private CurrencyType currencyType;
-    private BigDecimal value;
+    private BigDecimal currentBalance;
+    private BigDecimal initialAccountBalance;
 }

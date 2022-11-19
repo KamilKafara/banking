@@ -19,7 +19,8 @@ public class AccountEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private CurrencyType currencyType;
-    private BigDecimal value;
+    private BigDecimal currentBalance;
+    private BigDecimal initialAccountBalance;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
