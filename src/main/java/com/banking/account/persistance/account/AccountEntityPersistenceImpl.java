@@ -1,10 +1,10 @@
-package com.banking.account.persistance;
+package com.banking.account.persistance.account;
 
 import com.banking.account.dto.AccountDTO;
 import com.banking.account.exception.NotFoundException;
-import com.banking.account.mapper.AccountMapper;
 import com.banking.account.repository.AccountEntity;
 import com.banking.account.repository.AccountEntityRepository;
+import com.banking.account.utils.mapper.AccountMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +43,8 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
         if (accountEntity.isEmpty()) {
             throw new NotFoundException("Not found account with this id {" + userId + "}.");
         }
-        return AccountMapper.toDTO(accountEntity.get());    }
+        return AccountMapper.toDTO(accountEntity.get());
+    }
 
     @Override
     public AccountDTO getAccountByUserPesel(Long pesel) {

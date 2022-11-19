@@ -1,14 +1,13 @@
-package com.banking.account.persistance;
+package com.banking.account.persistance.user;
 
 import com.banking.account.dto.UserDTO;
+import com.banking.account.exception.NotFoundException;
 import com.banking.account.exception.ValidationException;
 import com.banking.account.exception.handler.ErrorCode;
 import com.banking.account.exception.handler.FieldInfo;
-import com.banking.account.mapper.UserMapper;
-import com.banking.account.exception.NotFoundException;
 import com.banking.account.repository.UserEntity;
 import com.banking.account.repository.UserEntityRepository;
-import org.hibernate.validator.internal.constraintvalidators.hv.pl.PESELValidator;
+import com.banking.account.utils.mapper.UserMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

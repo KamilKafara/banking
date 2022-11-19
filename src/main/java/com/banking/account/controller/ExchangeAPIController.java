@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/nbp")
+@RequestMapping("/exchange")
 public class ExchangeAPIController {
     private final ExchangeApi exchangeApi;
 

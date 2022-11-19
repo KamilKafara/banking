@@ -1,4 +1,4 @@
-package com.banking.account.persistance;
+package com.banking.account.persistance.account;
 
 import com.banking.account.dto.AccountDTO;
 

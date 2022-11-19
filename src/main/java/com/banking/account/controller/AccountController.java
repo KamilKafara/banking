@@ -1,7 +1,7 @@
 package com.banking.account.controller;
 
 import com.banking.account.dto.AccountDTO;
-import com.banking.account.persistance.AccountEntityPersistence;
+import com.banking.account.persistance.account.AccountEntityPersistence;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/account")
-class AccountController implements AccountEntityPersistence {
+public class AccountController implements AccountEntityPersistence {
 
     private final AccountEntityPersistence accountEntityPersistence;
 

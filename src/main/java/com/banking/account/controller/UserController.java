@@ -1,15 +1,14 @@
 package com.banking.account.controller;
 
-
 import com.banking.account.dto.UserDTO;
-import com.banking.account.persistance.UserEntityPersistence;
+import com.banking.account.persistance.user.UserEntityPersistence;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/user")
-class UserController {
+public class UserController {
 
     private final UserEntityPersistence userEntityPersistence;
 

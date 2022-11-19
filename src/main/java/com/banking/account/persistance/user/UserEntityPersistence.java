@@ -1,4 +1,4 @@
-package com.banking.account.persistance;
+package com.banking.account.persistance.user;
 
 import com.banking.account.dto.UserDTO;
 

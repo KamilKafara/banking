@@ -1,4 +1,4 @@
-package com.banking.account.mapper;
+package com.banking.account.utils.mapper;
 
 import com.banking.account.dto.AccountDTO;
 import com.banking.account.repository.AccountEntity;
