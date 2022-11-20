@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -48,5 +49,11 @@ public class ExchangeApiImpl implements ExchangeApi {
             throw new NotFoundException("Not data with this currencyType {" + currencyType.name() + "}.");
         }
         return currencyDTOS.get();
+    }
+
+    @Override
+    public BigDecimal exchangeBalance(ExchangeType type, CurrencyType currencyType, BigDecimal valueToConvert) throws IOException {
+        CurrencyDTO currencyDTO = getSerializedData(type, currencyType);
+        return valueToConvert.multiply(currencyDTO.getMid());
     }
 }

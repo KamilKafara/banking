@@ -41,6 +41,17 @@ class UserEntityPersistenceImpl implements UserEntityPersistence {
     }
 
     @Override
+    public UserDTO getByPesel(Long pesel) {
+        String number = String.valueOf(pesel);
+//        new PESELValidator().isCheckDigitValid();
+        Optional<UserEntity> userEntity = userEntityRepository.findByPesel(pesel);
+        if (userEntity.isEmpty()) {
+            throw new NotFoundException("Not found user with this pesel {" + pesel + "}.");
+        }
+        return userMapper.toDTO(userEntity.get());
+    }
+
+    @Override
     public UserDTO save(UserDTO userDTO) {
         if (userDTO.getId() != null) {
             throw new ValidationException("Id must be null.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
@@ -60,21 +71,10 @@ class UserEntityPersistenceImpl implements UserEntityPersistence {
         if (!id.equals(userDTO.getId())) {
             throw new ValidationException("Ids are not equals.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
         }
-        UserEntity userEntity = userMapper.fromDTO(userDTO);
+        UserEntity userEntity = userMapper.fromDTO(getById(id));
         userDTO.setId(userEntity.getId());
         UserEntity updatedEntity = userEntityRepository.save(userMapper.fromDTO(userDTO));
         return userMapper.toDTO(updatedEntity);
-    }
-
-    @Override
-    public UserDTO getByPesel(Long pesel) {
-        String number = String.valueOf(pesel);
-//        new PESELValidator().isCheckDigitValid();
-        Optional<UserEntity> userEntity = userEntityRepository.findByPesel(pesel);
-        if (userEntity.isEmpty()) {
-            throw new NotFoundException("Not found user with this pesel {" + pesel + "}.");
-        }
-        return userMapper.toDTO(userEntity.get());
     }
 
 }

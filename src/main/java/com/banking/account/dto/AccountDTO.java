@@ -11,4 +11,17 @@ public class AccountDTO {
     private CurrencyType currencyType;
     private BigDecimal currentBalance;
     private BigDecimal initialAccountBalance;
+    private UserDTO userDTO;
+
+    public AccountDTO() {
+        this.currencyType = CurrencyType.PLN;
+    }
+
+    public AccountDTO(Long id, UserDTO userDTO, BigDecimal currentBalance, BigDecimal initialAccountBalance) {
+        this.id = id;
+        this.userDTO = userDTO;
+        this.currencyType = CurrencyType.PLN;
+        this.currentBalance = currentBalance;
+        this.initialAccountBalance = initialAccountBalance;
+    }
 }
