@@ -4,24 +4,24 @@ import com.banking.account.exchange.rates.utils.CurrencyType;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Data
 public class AccountDTO {
     private Long id;
-    private CurrencyType currencyType;
+    private CurrencyType accountCurrencyType;
+    private Map<CurrencyType, BigDecimal> foundsInDifferentCurrencies;
     private BigDecimal currentBalance;
-    private BigDecimal initialAccountBalance;
     private UserDTO userDTO;
 
     public AccountDTO() {
-        this.currencyType = CurrencyType.PLN;
+        this.accountCurrencyType = CurrencyType.PLN;
     }
 
-    public AccountDTO(Long id, UserDTO userDTO, BigDecimal currentBalance, BigDecimal initialAccountBalance) {
+    public AccountDTO(Long id, UserDTO userDTO, BigDecimal currentBalance) {
         this.id = id;
         this.userDTO = userDTO;
-        this.currencyType = CurrencyType.PLN;
+        this.accountCurrencyType = CurrencyType.PLN;
         this.currentBalance = currentBalance;
-        this.initialAccountBalance = initialAccountBalance;
     }
 }

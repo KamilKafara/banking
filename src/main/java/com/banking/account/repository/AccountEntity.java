@@ -20,7 +20,6 @@ public class AccountEntity {
     private Long id;
     private CurrencyType currencyType;
     private BigDecimal currentBalance;
-    private BigDecimal initialAccountBalance;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false, updatable = false)

@@ -1,6 +1,7 @@
 package com.banking.account.exchange.rates;
 
 import com.banking.account.exception.NotFoundException;
+import com.banking.account.exception.ValidationException;
 import com.banking.account.exchange.rates.utils.CurrencyDTO;
 import com.banking.account.exchange.rates.utils.CurrencyType;
 import com.banking.account.exchange.rates.utils.ExchangeType;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +23,7 @@ import java.util.Optional;
 public class ExchangeApiImpl implements ExchangeApi {
     private static final String API_URL = "https://api.nbp.pl/api/exchangerates/tables/";
 
-    public List<TableDTO> getSerializedData(ExchangeType type) throws IOException {
+    public List<TableDTO> getCurrencyByType(ExchangeType type) throws IOException {
         String data = fetchData(type);
         final ObjectMapper objectMapper = new ObjectMapper();
         TableDTO[] array = objectMapper.readValue(data, TableDTO[].class);
@@ -35,8 +37,8 @@ public class ExchangeApiImpl implements ExchangeApi {
         return new String(inputFile.readAllBytes(), StandardCharsets.UTF_8);
     }
 
-    public CurrencyDTO getSerializedData(ExchangeType type, CurrencyType currencyType) throws IOException {
-        List<TableDTO> list = getSerializedData(type);
+    public CurrencyDTO getCurrencyByType(ExchangeType type, CurrencyType currencyType) throws IOException {
+        List<TableDTO> list = getCurrencyByType(type);
         Optional<TableDTO> item = list.stream().findFirst();
         if (item.isEmpty()) {
             throw new NotFoundException("Not found any data");
@@ -52,8 +54,23 @@ public class ExchangeApiImpl implements ExchangeApi {
     }
 
     @Override
-    public BigDecimal exchangeBalance(ExchangeType type, CurrencyType currencyType, BigDecimal valueToConvert) throws IOException {
-        CurrencyDTO currencyDTO = getSerializedData(type, currencyType);
-        return valueToConvert.multiply(currencyDTO.getMid());
+    public BigDecimal exchangeRate(ExchangeType type,
+                                   CurrencyType source,
+                                   CurrencyType target,
+                                   BigDecimal basicValue) throws IOException {
+        if (source.equals(target)) {
+            throw new ValidationException("CurrencyTypes are equal.");
+        }
+        BigDecimal targetValue = BigDecimal.ONE;
+        BigDecimal sourceValue = BigDecimal.ONE;
+
+        if (!CurrencyType.PLN.test(source)) {
+            sourceValue = getCurrencyByType(type, source).getMid();
+        }
+        if (!CurrencyType.PLN.test(target)) {
+            targetValue = getCurrencyByType(type, target).getMid();
+        }
+        BigDecimal exchangeRate = sourceValue.divide(targetValue, 2, RoundingMode.UP);
+        return exchangeRate.multiply(basicValue);
     }
 }

@@ -10,10 +10,10 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface ExchangeApi {
-    List<TableDTO> getSerializedData(ExchangeType type) throws IOException;
+    List<TableDTO> getCurrencyByType(ExchangeType type) throws IOException;
 
-    CurrencyDTO getSerializedData(ExchangeType type, CurrencyType currencyType) throws IOException;
+    CurrencyDTO getCurrencyByType(ExchangeType type, CurrencyType currencyType) throws IOException;
 
-    BigDecimal exchangeBalance(ExchangeType type, CurrencyType currencyType, BigDecimal valueToConvert) throws IOException;
+    BigDecimal exchangeRate(ExchangeType type, CurrencyType currencyType, CurrencyType targetCurrencyType, BigDecimal valueToConvert) throws IOException;
 
 }

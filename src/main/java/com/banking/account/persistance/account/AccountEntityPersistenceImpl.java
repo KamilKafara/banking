@@ -16,9 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,7 +43,22 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
         if (accountEntity.isEmpty()) {
             throw new NotFoundException("Not found account with this id {" + id + "}.");
         }
-        return AccountMapper.toDTO(accountEntity.get());
+        AccountDTO accountDTO = AccountMapper.toDTO(accountEntity.get());
+        setupSupportedCurrencies(accountDTO);
+        return accountDTO;
+    }
+
+    private void setupSupportedCurrencies(AccountDTO accountDTO) {
+        List<CurrencyType> supportedCurrencyTypes = CurrencyType.getSupportedCurrencyTypes();
+        Map<CurrencyType, BigDecimal> currencies = new LinkedHashMap<>();
+        supportedCurrencyTypes.forEach(type -> {
+            try {
+                currencies.put(type, exchangeApi.getCurrencyByType(ExchangeType.A, type).getMid());
+            } catch (IOException e) {
+                throw new ValidationException("An error occurred: " + e.getMessage());
+            }
+        });
+        accountDTO.setFoundsInDifferentCurrencies(currencies);
     }
 
     @Override
@@ -71,9 +84,18 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
         if (accountDTO.getId() != null) {
             throw new ValidationException("Id must be null.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
         }
-        if (!accountDTO.getCurrentBalance().equals(accountDTO.getInitialAccountBalance())) {
+        if (Objects.isNull(accountDTO.getCurrentBalance())) {
             throw new ValidationException("Values are not equal.", new FieldInfo("currentBalance / initialAccountBalance", ErrorCode.BAD_REQUEST));
         }
+        if (Objects.isNull(accountDTO.getUserDTO())) {
+            throw new ValidationException("Cannot create account without user data.", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
+        }
+
+        Optional<AccountDTO> existingAccount = Optional.ofNullable(getAccountByUserPesel(accountDTO.getUserDTO().getPesel()));
+        if (existingAccount.isPresent()) {
+            throw new ValidationException(".", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
+        }
+
         AccountEntity accountEntity = accountEntityRepository.save(AccountMapper.fromDTO(accountDTO));
         return AccountMapper.toDTO(accountEntity);
     }
@@ -105,12 +127,12 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
                                     BigDecimal amountToExchange) throws IOException {
 
         AccountDTO accountDTO = getAccountByUserId(userId);
-        if (!accountDTO.getCurrencyType().equals(currentCurrencyType)) {
+        if (!accountDTO.getAccountCurrencyType().equals(currentCurrencyType)) {
             throw new ValidationException("CurrencyType are not equals.", new FieldInfo("currentCurrencyType", ErrorCode.BAD_REQUEST));
         }
-        BigDecimal newBalance = exchangeApi.exchangeBalance(exchangeType, targetCurrencyType, amountToExchange);
+        BigDecimal newBalance = exchangeApi.exchangeRate(exchangeType, targetCurrencyType, targetCurrencyType, amountToExchange);
         accountDTO.setCurrentBalance(newBalance);
-        accountDTO.setCurrencyType(targetCurrencyType);
+        accountDTO.setAccountCurrencyType(targetCurrencyType);
         return update(accountDTO, accountDTO.getId());
 
     }
