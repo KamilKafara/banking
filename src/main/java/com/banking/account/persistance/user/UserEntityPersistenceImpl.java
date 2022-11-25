@@ -5,9 +5,14 @@ import com.banking.account.exception.NotFoundException;
 import com.banking.account.exception.ValidationException;
 import com.banking.account.exception.handler.ErrorCode;
 import com.banking.account.exception.handler.FieldInfo;
+import com.banking.account.repository.AccountEntity;
+import com.banking.account.repository.AccountEntityRepository;
 import com.banking.account.repository.UserEntity;
 import com.banking.account.repository.UserEntityRepository;
+import com.banking.account.utils.mapper.AccountMapper;
 import com.banking.account.utils.mapper.UserMapper;
+import com.banking.account.utils.validate.PeselValidator;
+import com.google.common.collect.Lists;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,17 +22,17 @@ import java.util.stream.Collectors;
 @Service
 class UserEntityPersistenceImpl implements UserEntityPersistence {
     private final UserEntityRepository userEntityRepository;
-    private final UserMapper userMapper;
+    private final AccountEntityRepository accountEntityRepository;
 
-    UserEntityPersistenceImpl(UserEntityRepository userEntityRepository, UserMapper userMapper) {
+    UserEntityPersistenceImpl(UserEntityRepository userEntityRepository, AccountEntityRepository accountEntityRepository) {
         this.userEntityRepository = userEntityRepository;
-        this.userMapper = userMapper;
+        this.accountEntityRepository = accountEntityRepository;
     }
 
     @Override
     public List<UserDTO> getAllUser() {
         return userEntityRepository.findAll().stream()
-                .map(userMapper::toDTO)
+                .map(UserMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -37,18 +42,23 @@ class UserEntityPersistenceImpl implements UserEntityPersistence {
         if (userEntity.isEmpty()) {
             throw new NotFoundException("Not found user with this id {" + id + "}.");
         }
-        return userMapper.toDTO(userEntity.get());
+        Optional<AccountEntity> accountByUserId = accountEntityRepository.findAccountByUserId(id);
+        UserDTO userDTO = UserMapper.toDTO(userEntity.get());
+        accountByUserId.ifPresent(account -> {
+            userDTO.setAccount(AccountMapper.toDTO(accountByUserId.get()));
+        });
+        return userDTO;
     }
 
     @Override
     public UserDTO getByPesel(Long pesel) {
         String number = String.valueOf(pesel);
-//        new PESELValidator().isCheckDigitValid();
+        PeselValidator.validate(number);
         Optional<UserEntity> userEntity = userEntityRepository.findByPesel(pesel);
         if (userEntity.isEmpty()) {
             throw new NotFoundException("Not found user with this pesel {" + pesel + "}.");
         }
-        return userMapper.toDTO(userEntity.get());
+        return UserMapper.toDTO(userEntity.get());
     }
 
     @Override
@@ -56,8 +66,19 @@ class UserEntityPersistenceImpl implements UserEntityPersistence {
         if (userDTO.getId() != null) {
             throw new ValidationException("Id must be null.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
         }
-        UserEntity userEntity = userEntityRepository.save(userMapper.fromDTO(userDTO));
-        return userMapper.toDTO(userEntity);
+        if (userDTO.getPesel() == null) {
+            throw new ValidationException("Id must be null.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
+        }
+        Optional<UserEntity> userEntityOptional = userEntityRepository.findByPesel(userDTO.getPesel());
+        userEntityOptional.ifPresent(u -> {
+                    throw new ValidationException("User with this pesel already exist.", new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
+                }
+        );
+
+        UserEntity userEntity = userEntityRepository.save(UserMapper.fromDTO(userDTO));
+        Optional<AccountEntity> accountByUserId = accountEntityRepository.findAccountByUserId(userEntity.getId());
+        accountByUserId.ifPresent(account -> userEntity.setAccounts(Lists.newArrayList(accountByUserId.get())));
+        return UserMapper.toDTO(userEntity);
     }
 
     @Override
@@ -71,10 +92,11 @@ class UserEntityPersistenceImpl implements UserEntityPersistence {
         if (!id.equals(userDTO.getId())) {
             throw new ValidationException("Ids are not equals.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
         }
-        UserEntity userEntity = userMapper.fromDTO(getById(id));
+        PeselValidator.validate(userDTO.getPesel());
+        UserEntity userEntity = UserMapper.fromDTO(getById(id));
         userDTO.setId(userEntity.getId());
-        UserEntity updatedEntity = userEntityRepository.save(userMapper.fromDTO(userDTO));
-        return userMapper.toDTO(updatedEntity);
+        UserEntity updatedEntity = userEntityRepository.save(UserMapper.fromDTO(userDTO));
+        return UserMapper.toDTO(updatedEntity);
     }
 
 }

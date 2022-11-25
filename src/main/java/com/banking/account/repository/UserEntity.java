@@ -1,24 +1,23 @@
 package com.banking.account.repository;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
-import org.hibernate.Hibernate;
 import org.hibernate.validator.constraints.pl.PESEL;
 
 import javax.persistence.*;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Getter
 @Setter
-@ToString
 @RequiredArgsConstructor
+@EqualsAndHashCode(exclude = "accounts")
 public class UserEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false, length = 64)
     private String firstName;
@@ -27,21 +26,7 @@ public class UserEntity {
     @PESEL
     @Column(unique = true, length = 11, nullable = false)
     private Long pesel;
-
-    @OneToMany(cascade=CascadeType.ALL, mappedBy="user")
-    @ToString.Exclude
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @JsonIgnoreProperties("user")
     private List<AccountEntity> accounts;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        UserEntity that = (UserEntity) o;
-        return id != null && Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

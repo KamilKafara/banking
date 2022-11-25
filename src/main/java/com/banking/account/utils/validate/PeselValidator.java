@@ -1,5 +1,9 @@
 package com.banking.account.utils.validate;
 
+import com.banking.account.exception.ValidationException;
+import com.banking.account.exception.handler.ErrorCode;
+import com.banking.account.exception.handler.FieldInfo;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,24 +16,24 @@ public class PeselValidator {
 
     private static final int PESEL_LENGHT = 11;
 
-    public static boolean validateLength(Long pesel) {
+    public static void validate(Long pesel) {
         List<String> errors = new ArrayList<>();
-        if (validateLength(String.valueOf(pesel))) {
+        if (validate(String.valueOf(pesel))) {
             errors.add(NOT_VALID_LENGTH);
         }
         if (validateAge(String.valueOf(pesel))) {
             errors.add(USER_AGE_NOT_VALID);
         }
-//        throw new ValidationException("Pesel is not valid for this reason:" + errors, new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
-
-        return errors.isEmpty();
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Pesel is not valid for this reason:" + errors, new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
+        }
     }
 
     private static boolean validateAge(String pesel) {
         return false;
     }
 
-    public static boolean validateLength(String pesel) {
+    public static boolean validate(String pesel) {
         return pesel.length() != PESEL_LENGHT;
     }
 }

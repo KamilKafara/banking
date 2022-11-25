@@ -87,14 +87,14 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
         if (Objects.isNull(accountDTO.getCurrentBalance())) {
             throw new ValidationException("Values are not equal.", new FieldInfo("currentBalance / initialAccountBalance", ErrorCode.BAD_REQUEST));
         }
-        if (Objects.isNull(accountDTO.getUserDTO())) {
+        if (Objects.isNull(accountDTO.getUser())) {
             throw new ValidationException("Cannot create account without user data.", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
         }
 
-        Optional<AccountDTO> existingAccount = Optional.ofNullable(getAccountByUserPesel(accountDTO.getUserDTO().getPesel()));
-        if (existingAccount.isPresent()) {
-            throw new ValidationException(".", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
-        }
+//        Optional<AccountEntity> optionalAccountEntity = accountEntityRepository.findAccountByUserPesel(accountDTO.getUser().getPesel());
+//        if (optionalAccountEntity.isPresent()) {
+//            throw new ValidationException("This account is already assigned to user with this pesel.", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
+//        }
 
         AccountEntity accountEntity = accountEntityRepository.save(AccountMapper.fromDTO(accountDTO));
         return AccountMapper.toDTO(accountEntity);
