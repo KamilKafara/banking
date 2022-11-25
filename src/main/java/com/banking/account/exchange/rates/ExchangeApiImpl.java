@@ -43,7 +43,13 @@ public class ExchangeApiImpl implements ExchangeApi {
         if (item.isEmpty()) {
             throw new NotFoundException("Not found any data");
         }
-
+        if(CurrencyType.PLN.test(currencyType)){
+            CurrencyDTO currencyDTO = new CurrencyDTO();
+            currencyDTO.setCurrency("Polski złoty");
+            currencyDTO.setMid(BigDecimal.ONE);
+            currencyDTO.setCode(currencyType.name());
+            return currencyDTO;
+        }
         Optional<CurrencyDTO> currencyDTOS = item.get().getRates().stream()
                 .filter(it -> it.getCode().equalsIgnoreCase(currencyType.name()))
                 .findFirst();
@@ -58,9 +64,6 @@ public class ExchangeApiImpl implements ExchangeApi {
                                    CurrencyType source,
                                    CurrencyType target,
                                    BigDecimal basicValue) throws IOException {
-        if (source.equals(target)) {
-            throw new ValidationException("CurrencyTypes are equal.");
-        }
         BigDecimal targetValue = BigDecimal.ONE;
         BigDecimal sourceValue = BigDecimal.ONE;
 

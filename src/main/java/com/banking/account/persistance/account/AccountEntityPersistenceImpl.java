@@ -24,17 +24,20 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
 
     private final AccountEntityRepository accountEntityRepository;
     private final ExchangeApi exchangeApi;
+    private final AccountMapper accountMapper;
+
 
     @Autowired
-    public AccountEntityPersistenceImpl(AccountEntityRepository accountEntityRepository, ExchangeApi exchangeApi) {
+    public AccountEntityPersistenceImpl(AccountEntityRepository accountEntityRepository, ExchangeApi exchangeApi, AccountMapper accountMapper) {
         this.accountEntityRepository = accountEntityRepository;
         this.exchangeApi = exchangeApi;
+        this.accountMapper = accountMapper;
     }
 
     @Override
     public List<AccountDTO> getAllAccounts() {
         return accountEntityRepository.findAll().stream()
-                .map(AccountMapper::toDTO).collect(Collectors.toList());
+                .map(accountMapper::toDTO).collect(Collectors.toList());
     }
 
     @Override
@@ -43,17 +46,23 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
         if (accountEntity.isEmpty()) {
             throw new NotFoundException("Not found account with this id {" + id + "}.");
         }
-        AccountDTO accountDTO = AccountMapper.toDTO(accountEntity.get());
+        AccountDTO accountDTO = accountMapper.toDTO(accountEntity.get());
         setupSupportedCurrencies(accountDTO);
         return accountDTO;
     }
 
-    private void setupSupportedCurrencies(AccountDTO accountDTO) {
+    @Override
+    public void setupSupportedCurrencies(AccountDTO accountDTO) {
         List<CurrencyType> supportedCurrencyTypes = CurrencyType.getSupportedCurrencyTypes();
         Map<CurrencyType, BigDecimal> currencies = new LinkedHashMap<>();
         supportedCurrencyTypes.forEach(type -> {
             try {
-                currencies.put(type, exchangeApi.getCurrencyByType(ExchangeType.A, type).getMid());
+                BigDecimal exchangeRate = exchangeApi.exchangeRate(
+                        ExchangeType.A,
+                        accountDTO.getAccountCurrencyType(),
+                        type,
+                        accountDTO.getCurrentBalance());
+                currencies.put(type, exchangeRate);
             } catch (IOException e) {
                 throw new ValidationException("An error occurred: " + e.getMessage());
             }
@@ -67,7 +76,7 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
         if (accountEntity.isEmpty()) {
             throw new NotFoundException("Not found account with this id {" + userId + "}.");
         }
-        return AccountMapper.toDTO(accountEntity.get());
+        return accountMapper.toDTO(accountEntity.get());
     }
 
     @Override
@@ -76,7 +85,7 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
         if (accountEntity.isEmpty()) {
             throw new NotFoundException("Not found account assigned to user with this pesel {" + pesel + "}.");
         }
-        return AccountMapper.toDTO(accountEntity.get());
+        return accountMapper.toDTO(accountEntity.get());
     }
 
     @Override
@@ -96,8 +105,8 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
 //            throw new ValidationException("This account is already assigned to user with this pesel.", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
 //        }
 
-        AccountEntity accountEntity = accountEntityRepository.save(AccountMapper.fromDTO(accountDTO));
-        return AccountMapper.toDTO(accountEntity);
+        AccountEntity accountEntity = accountEntityRepository.save(accountMapper.fromDTO(accountDTO));
+        return accountMapper.toDTO(accountEntity);
     }
 
     @Override
@@ -105,10 +114,10 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
         if (!id.equals(accountDTO.getId())) {
             throw new ValidationException("Ids are not equals.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
         }
-        AccountEntity account = AccountMapper.fromDTO(getAccountById(id));
+        AccountEntity account = accountMapper.fromDTO(getAccountById(id));
         accountDTO.setId(account.getId());
         AccountEntity updatedAccount = accountEntityRepository.save(account);
-        return AccountMapper.toDTO(updatedAccount);
+        return accountMapper.toDTO(updatedAccount);
     }
 
     @Override
@@ -117,7 +126,7 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
         if (!Objects.equals(currentAccount.getCurrentBalance(), BigDecimal.ZERO)) {
             throw new ValidationException("Cannot delete account with activate balance.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
         }
-        accountEntityRepository.delete(AccountMapper.fromDTO(currentAccount));
+        accountEntityRepository.delete(accountMapper.fromDTO(currentAccount));
     }
 
     public AccountDTO exchangeMoney(Long userId,

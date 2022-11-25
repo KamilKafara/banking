@@ -2,27 +2,38 @@ package com.banking.account.utils.mapper;
 
 import com.banking.account.dto.AccountDTO;
 import com.banking.account.repository.AccountEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
+@Service
 public class AccountMapper {
 
-    public static AccountEntity fromDTO(AccountDTO accountDTO) {
+    private final UserMapper userMapper;
+
+    @Autowired
+    public AccountMapper(@Lazy UserMapper userMapper) {
+        this.userMapper = userMapper;
+    }
+
+    public AccountEntity fromDTO(AccountDTO accountDTO) {
         AccountEntity account = new AccountEntity();
         account.setId(accountDTO.getId());
         account.setCurrencyType(accountDTO.getAccountCurrencyType());
         account.setCurrentBalance(accountDTO.getCurrentBalance());
         if (accountDTO.getUser() != null) {
-            account.setUser(UserMapper.fromDTO(accountDTO.getUser()));
+            account.setUser(userMapper.fromDTO(accountDTO.getUser()));
         }
         return account;
     }
 
-    public static AccountDTO toDTO(AccountEntity account) {
+    public AccountDTO toDTO(AccountEntity account) {
         AccountDTO accountDTO = new AccountDTO();
         accountDTO.setId(account.getId());
         accountDTO.setAccountCurrencyType(accountDTO.getAccountCurrencyType());
         accountDTO.setCurrentBalance(account.getCurrentBalance());
         if (account.getUser() != null) {
-            accountDTO.setUser(UserMapper.toDTO(account.getUser()));
+            accountDTO.setUser(userMapper.toDTO(account.getUser()));
         }
         return accountDTO;
     }

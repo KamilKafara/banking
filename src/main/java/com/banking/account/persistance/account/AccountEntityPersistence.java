@@ -18,4 +18,6 @@ public interface AccountEntityPersistence {
     AccountDTO update(AccountDTO accountDTO, Long id);
 
     void delete(Long id);
+
+    void setupSupportedCurrencies(AccountDTO accountDTO);
 }
