@@ -1,7 +1,6 @@
 package com.banking.account.exchange.rates;
 
 import com.banking.account.exception.NotFoundException;
-import com.banking.account.exception.ValidationException;
 import com.banking.account.exchange.rates.utils.CurrencyDTO;
 import com.banking.account.exchange.rates.utils.CurrencyType;
 import com.banking.account.exchange.rates.utils.ExchangeType;
@@ -33,6 +32,7 @@ public class ExchangeApiImpl implements ExchangeApi {
     private String fetchData(ExchangeType type) throws IOException {
         URL url = new URL(API_URL + type.name());
         URLConnection urlConnection = url.openConnection();
+        urlConnection.setUseCaches(true);
         InputStream inputFile = urlConnection.getInputStream();
         return new String(inputFile.readAllBytes(), StandardCharsets.UTF_8);
     }
@@ -43,7 +43,7 @@ public class ExchangeApiImpl implements ExchangeApi {
         if (item.isEmpty()) {
             throw new NotFoundException("Not found any data");
         }
-        if(CurrencyType.PLN.test(currencyType)){
+        if (CurrencyType.PLN.test(currencyType)) {
             CurrencyDTO currencyDTO = new CurrencyDTO();
             currencyDTO.setCurrency("Polski złoty");
             currencyDTO.setMid(BigDecimal.ONE);

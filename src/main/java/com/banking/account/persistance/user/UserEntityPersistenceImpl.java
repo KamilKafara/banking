@@ -6,7 +6,6 @@ import com.banking.account.exception.NotFoundException;
 import com.banking.account.exception.ValidationException;
 import com.banking.account.exception.handler.ErrorCode;
 import com.banking.account.exception.handler.FieldInfo;
-import com.banking.account.exchange.rates.ExchangeApi;
 import com.banking.account.persistance.account.AccountEntityPersistence;
 import com.banking.account.repository.AccountEntity;
 import com.banking.account.repository.AccountEntityRepository;
@@ -83,14 +82,20 @@ class UserEntityPersistenceImpl implements UserEntityPersistence {
         }
         Optional<UserEntity> userEntityOptional = userEntityRepository.findByPesel(userDTO.getPesel());
         userEntityOptional.ifPresent(u -> {
-                    throw new ValidationException("User with this pesel already exist.", new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
+                    throw new ValidationException("User with this pesel already exist.",
+                            new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
                 }
         );
-
-        UserEntity userEntity = userEntityRepository.save(userMapper.fromDTO(userDTO));
-        Optional<AccountEntity> accountByUserId = accountEntityRepository.findAccountByUserId(userEntity.getId());
-        accountByUserId.ifPresent(account -> userEntity.setAccounts(Lists.newArrayList(accountByUserId.get())));
-        return userMapper.toDTO(userEntity);
+        UserEntity savedUserEntity = userEntityRepository.save(userMapper.fromDTO(userDTO));
+        UserDTO savedUserDTO = userMapper.toDTO(savedUserEntity);
+        if (savedUserDTO.getAccount() != null) {
+            savedUserEntity.getAccounts().forEach(account -> {
+                account.setUser(savedUserEntity);
+                accountEntityRepository.save(account);
+            });
+            accountEntityPersistence.setupSupportedCurrencies(savedUserDTO.getAccount());
+        }
+        return savedUserDTO;
     }
 
     @Override

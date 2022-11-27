@@ -1,10 +1,7 @@
 package com.banking.account.repository;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.validator.constraints.pl.PESEL;
 
 import javax.persistence.*;
@@ -13,8 +10,9 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@RequiredArgsConstructor
-@EqualsAndHashCode(exclude = "accounts")
+@AllArgsConstructor
+@NoArgsConstructor
+//@EqualsAndHashCode(exclude = "accounts")
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,9 +22,9 @@ public class UserEntity {
     @Column(nullable = false, length = 64)
     private String secondName;
     @PESEL
-    @Column(unique = true, length = 11, nullable = false)
+    @Column(unique = true, length = 11)
     private Long pesel;
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JsonIgnoreProperties("user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+//    @JsonIgnoreProperties("user")
     private List<AccountEntity> accounts;
 }

@@ -1,10 +1,9 @@
 package com.banking.account.repository;
 
 import com.banking.account.exchange.rates.utils.CurrencyType;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.EqualsAndHashCode;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -13,8 +12,8 @@ import java.math.BigDecimal;
 @Entity
 @Getter
 @Setter
-@RequiredArgsConstructor
-@EqualsAndHashCode(exclude = "user")
+@AllArgsConstructor
+@NoArgsConstructor
 public class AccountEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,8 +21,7 @@ public class AccountEntity {
     private CurrencyType currencyType;
     private BigDecimal currentBalance;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, optional = true)
-    @JoinColumn(name = "user_id", nullable = false, updatable = false)
-    @JsonIgnoreProperties("accounts")
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     private UserEntity user;
 }

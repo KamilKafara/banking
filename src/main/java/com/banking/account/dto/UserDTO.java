@@ -1,9 +1,8 @@
 package com.banking.account.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.EqualsAndHashCode;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-@EqualsAndHashCode(exclude = "accounts")
+//@EqualsAndHashCode(exclude = "accounts")
 public class UserDTO {
     private Long id;
 
@@ -12,7 +11,7 @@ public class UserDTO {
     private String secondName;
 
     private Long pesel;
-    @JsonIgnoreProperties("user")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private AccountDTO account;
 
     public UserDTO() {

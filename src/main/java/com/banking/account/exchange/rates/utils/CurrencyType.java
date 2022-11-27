@@ -8,7 +8,8 @@ import java.util.stream.Collectors;
 public enum CurrencyType implements Predicate<CurrencyType> {
     PLN(true),
     USD(true),
-    EUR(false);
+    EUR(true),
+    HUF(true);
 
     private final boolean isSupported;
 

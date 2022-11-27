@@ -67,7 +67,7 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
                 throw new ValidationException("An error occurred: " + e.getMessage());
             }
         });
-        accountDTO.setFoundsInDifferentCurrencies(currencies);
+        accountDTO.setEquivalentInOtherCurrencies(currencies);
     }
 
     @Override
@@ -96,9 +96,9 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
         if (Objects.isNull(accountDTO.getCurrentBalance())) {
             throw new ValidationException("Values are not equal.", new FieldInfo("currentBalance / initialAccountBalance", ErrorCode.BAD_REQUEST));
         }
-        if (Objects.isNull(accountDTO.getUser())) {
-            throw new ValidationException("Cannot create account without user data.", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
-        }
+//        if (Objects.isNull(accountDTO.getUser())) {
+//            throw new ValidationException("Cannot create account without user data.", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
+//        }
 
 //        Optional<AccountEntity> optionalAccountEntity = accountEntityRepository.findAccountByUserPesel(accountDTO.getUser().getPesel());
 //        if (optionalAccountEntity.isPresent()) {
