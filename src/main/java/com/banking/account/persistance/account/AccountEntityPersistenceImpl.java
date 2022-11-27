@@ -11,6 +11,7 @@ import com.banking.account.exchange.rates.utils.ExchangeType;
 import com.banking.account.repository.AccountEntity;
 import com.banking.account.repository.AccountEntityRepository;
 import com.banking.account.utils.mapper.AccountMapper;
+import com.banking.account.utils.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,13 +26,15 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
     private final AccountEntityRepository accountEntityRepository;
     private final ExchangeApi exchangeApi;
     private final AccountMapper accountMapper;
+    private final UserMapper userMapper;
 
 
     @Autowired
-    public AccountEntityPersistenceImpl(AccountEntityRepository accountEntityRepository, ExchangeApi exchangeApi, AccountMapper accountMapper) {
+    public AccountEntityPersistenceImpl(AccountEntityRepository accountEntityRepository, ExchangeApi exchangeApi, AccountMapper accountMapper, UserMapper userMapper) {
         this.accountEntityRepository = accountEntityRepository;
         this.exchangeApi = exchangeApi;
         this.accountMapper = accountMapper;
+        this.userMapper = userMapper;
     }
 
     @Override
@@ -48,6 +51,7 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
         }
         AccountDTO accountDTO = accountMapper.toDTO(accountEntity.get());
         setupSupportedCurrencies(accountDTO);
+        accountDTO.setUser(userMapper.toDTO(accountEntity.get().getUser()));
         return accountDTO;
     }
 
@@ -96,14 +100,14 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
         if (Objects.isNull(accountDTO.getCurrentBalance())) {
             throw new ValidationException("Values are not equal.", new FieldInfo("currentBalance / initialAccountBalance", ErrorCode.BAD_REQUEST));
         }
-//        if (Objects.isNull(accountDTO.getUser())) {
-//            throw new ValidationException("Cannot create account without user data.", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
-//        }
-
-//        Optional<AccountEntity> optionalAccountEntity = accountEntityRepository.findAccountByUserPesel(accountDTO.getUser().getPesel());
-//        if (optionalAccountEntity.isPresent()) {
-//            throw new ValidationException("This account is already assigned to user with this pesel.", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
-//        }
+        if (Objects.isNull(accountDTO.getUser())) {
+            throw new ValidationException("Cannot create account without user data.", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
+        }
+//
+        Optional<AccountEntity> optionalAccountEntity = accountEntityRepository.findAccountByUserPesel(accountDTO.getUser().getPesel());
+        if (optionalAccountEntity.isPresent()) {
+            throw new ValidationException("This account is already assigned to user with this pesel.", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
+        }
 
         AccountEntity accountEntity = accountEntityRepository.save(accountMapper.fromDTO(accountDTO));
         return accountMapper.toDTO(accountEntity);

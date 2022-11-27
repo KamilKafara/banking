@@ -18,6 +18,7 @@ public class AccountDTO {
     private Long id;
     private CurrencyType accountCurrencyType;
     private BigDecimal currentBalance;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Map<CurrencyType, BigDecimal> equivalentInOtherCurrencies;
     @JsonIgnoreProperties("accounts")
     @JsonInclude(JsonInclude.Include.NON_NULL)

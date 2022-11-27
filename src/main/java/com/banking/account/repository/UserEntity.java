@@ -12,7 +12,6 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-//@EqualsAndHashCode(exclude = "accounts")
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +24,5 @@ public class UserEntity {
     @Column(unique = true, length = 11)
     private Long pesel;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-//    @JsonIgnoreProperties("user")
     private List<AccountEntity> accounts;
 }

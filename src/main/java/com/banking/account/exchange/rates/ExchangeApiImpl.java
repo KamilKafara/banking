@@ -21,6 +21,7 @@ import java.util.Optional;
 @Service
 public class ExchangeApiImpl implements ExchangeApi {
     private static final String API_URL = "https://api.nbp.pl/api/exchangerates/tables/";
+    private final int DEFAULT_SCALE = 2;
 
     public List<TableDTO> getCurrencyByType(ExchangeType type) throws IOException {
         String data = fetchData(type);
@@ -66,14 +67,14 @@ public class ExchangeApiImpl implements ExchangeApi {
                                    BigDecimal basicValue) throws IOException {
         BigDecimal targetValue = BigDecimal.ONE;
         BigDecimal sourceValue = BigDecimal.ONE;
-
         if (!CurrencyType.PLN.test(source)) {
             sourceValue = getCurrencyByType(type, source).getMid();
         }
         if (!CurrencyType.PLN.test(target)) {
             targetValue = getCurrencyByType(type, target).getMid();
         }
-        BigDecimal exchangeRate = sourceValue.divide(targetValue, 2, RoundingMode.UP);
-        return exchangeRate.multiply(basicValue);
+        BigDecimal exchangeRate = sourceValue.divide(targetValue, DEFAULT_SCALE, RoundingMode.UP);
+        BigDecimal result = exchangeRate.multiply(basicValue);
+        return result.setScale(DEFAULT_SCALE, RoundingMode.UP);
     }
 }

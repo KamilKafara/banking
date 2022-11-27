@@ -2,7 +2,6 @@ package com.banking.account.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-//@EqualsAndHashCode(exclude = "accounts")
 public class UserDTO {
     private Long id;
 

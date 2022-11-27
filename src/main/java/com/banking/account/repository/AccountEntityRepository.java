@@ -9,10 +9,14 @@ import java.util.Optional;
 
 @Repository
 public interface AccountEntityRepository extends JpaRepository<AccountEntity, Long> {
-    @Query("select a from AccountEntity a where a.user.pesel = ?1")
+    String FULL_JOIN_QUERY = "SELECT a,u " +
+                             "FROM UserEntity u FULL JOIN AccountEntity a " +
+                             "ON u.id = a.user.id ";
+
+    @Query(FULL_JOIN_QUERY + "WHERE u.pesel = ?1")
     Optional<AccountEntity> findAccountByUserPesel(@NonNull Long pesel);
 
-    @Query("select a from AccountEntity a where a.user.id = ?1")
+    @Query(FULL_JOIN_QUERY + "WHERE u.id = ?1")
     Optional<AccountEntity> findAccountByUserId(@NonNull Long userId);
 
 }
