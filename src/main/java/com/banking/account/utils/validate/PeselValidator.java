@@ -7,13 +7,8 @@ import org.hibernate.validator.internal.constraintvalidators.hv.pl.PESELValidato
 
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.ArrayList;
-import java.util.List;
 
 public class PeselValidator {
-    private static final String NOT_VALID_LENGTH = "PESEL length hasn't correct length. Valid length is 11.";
-    private static final String USER_AGE_NOT_VALID = "User with this PESEL number is not adult.";
-    private static final String NOT_VALID = "Pesel is not valid.";
     private static final int ADULT_AGE = 18;
 
     private PeselValidator() {
@@ -21,24 +16,19 @@ public class PeselValidator {
 
     private static final int PESEL_LENGTH = 11;
 
-    public static void validate(String pesel) {
-        List<String> errors = new ArrayList<>();
+    public static boolean validate(String pesel) {
         if (validateLength(pesel)) {
-            errors.add(NOT_VALID_LENGTH);
+            throw new ValidationException("PESEL length hasn't correct length. Valid length is 11.\n", new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
         }
-
+        if (!validateAge(pesel)) {
+            throw new ValidationException("User with this PESEL number is not adult.", new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
+        }
         PESELValidator validator = new PESELValidator();
         validator.initialize(null);
         if (!validator.isValid(pesel, null)) {
-            errors.add(NOT_VALID);
+            throw new ValidationException("Pesel is not valid.", new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
         }
-
-        if (!validateAge(pesel)) {
-            errors.add(USER_AGE_NOT_VALID);
-        }
-        if (!errors.isEmpty()) {
-            throw new ValidationException("Pesel is not valid for this reason:" + errors, new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
-        }
+        return true;
     }
 
     private static boolean validateAge(String pesel) {
