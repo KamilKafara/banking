@@ -126,9 +126,9 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
     }
 
     private AccountEntity prepareAccountDataToSave(AccountDTO accountDTO, UserEntity userEntity) {
-        AccountEntity acountToSave = accountMapper.fromDTO(accountDTO);
-        acountToSave.setUser(userEntity);
-        return acountToSave;
+        AccountEntity accountEntity = accountMapper.fromDTO(accountDTO);
+        accountEntity.setUser(userEntity);
+        return accountEntity;
     }
 
     private AccountDTO prepareDTOData(UserEntity userEntity, AccountEntity accountEntity) {
@@ -162,22 +162,5 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
             throw new ValidationException("Cannot delete account with not null balance.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
         }
         accountEntityRepository.delete(accountMapper.fromDTO(currentAccount));
-    }
-
-    public AccountDTO exchangeMoney(Long userId,
-                                    ExchangeType exchangeType,
-                                    CurrencyType currentCurrencyType,
-                                    CurrencyType targetCurrencyType,
-                                    BigDecimal amountToExchange) throws IOException {
-
-        AccountDTO accountDTO = getAccountByUserId(userId);
-        if (!accountDTO.getAccountCurrencyType().equals(currentCurrencyType)) {
-            throw new ValidationException("CurrencyType are not equals.", new FieldInfo("currentCurrencyType", ErrorCode.BAD_REQUEST));
-        }
-        ExchangeDTO newBalance = exchangeApi.exchangeRate(exchangeType, targetCurrencyType, targetCurrencyType, amountToExchange);
-        accountDTO.setCurrentBalance(newBalance.getTargetValue());
-        accountDTO.setAccountCurrencyType(targetCurrencyType);
-        return update(accountDTO, accountDTO.getId());
-
     }
 }
