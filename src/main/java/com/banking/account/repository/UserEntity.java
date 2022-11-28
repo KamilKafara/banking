@@ -28,6 +28,6 @@ public class UserEntity {
     @Column(unique = true, length = 11)
     private Long pesel;
     @JsonManagedReference
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private List<AccountEntity> accounts;
 }

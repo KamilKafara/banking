@@ -1,7 +1,6 @@
 package com.banking.account.dto;
 
 import com.banking.account.exchange.rates.utils.CurrencyType;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -20,7 +19,6 @@ public class AccountDTO {
     private BigDecimal currentBalance;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Map<CurrencyType, BigDecimal> equivalentInOtherCurrencies;
-    @JsonIgnoreProperties("accounts")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private UserDTO user;
 

@@ -18,6 +18,7 @@ import com.google.common.collect.Lists;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -78,14 +79,18 @@ class UserEntityPersistenceImpl implements UserEntityPersistence {
             throw new ValidationException("Id must be null.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
         }
         if (userDTO.getPesel() == null) {
-            throw new ValidationException("Id must be null.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
+            throw new ValidationException("Pesel cannot be null.", new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
         }
+
+        PeselValidator.validate(userDTO.getPesel());
         Optional<UserEntity> userEntityOptional = userEntityRepository.findByPesel(userDTO.getPesel());
         userEntityOptional.ifPresent(u -> {
-                    throw new ValidationException("User with this pesel already exist.",
-                            new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
+                    throw new ValidationException("User with this pesel already exist.", new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
                 }
         );
+        if (userDTO.getAccount() != null && userDTO.getAccount().getCurrentBalance().compareTo(BigDecimal.ZERO) < 0) {
+            throw new ValidationException("Balance cannot be negative", new FieldInfo("currentBalance", ErrorCode.BAD_REQUEST));
+        }
         UserEntity savedUserEntity = userEntityRepository.save(userMapper.fromDTO(userDTO));
         UserDTO savedUserDTO = userMapper.toDTO(savedUserEntity);
         if (savedUserDTO.getAccount() != null) {
@@ -100,8 +105,11 @@ class UserEntityPersistenceImpl implements UserEntityPersistence {
 
     @Override
     public void delete(Long id) {
-        UserDTO userDTO = getById(id);
-        userEntityRepository.deleteById(userDTO.getId());
+        Optional<UserDTO> userDTO = Optional.ofNullable(getById(id));
+        if (userDTO.isPresent() && userDTO.get().getAccount() != null) {
+            throw new ValidationException("Cannot delete user assigned to account", new FieldInfo("id", ErrorCode.BAD_REQUEST));
+        }
+        userEntityRepository.deleteById(userDTO.get().getId());
     }
 
     @Override
@@ -109,6 +117,7 @@ class UserEntityPersistenceImpl implements UserEntityPersistence {
         if (!id.equals(userDTO.getId())) {
             throw new ValidationException("Ids are not equals.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
         }
+
         PeselValidator.validate(userDTO.getPesel());
         UserEntity userEntity = userMapper.fromDTO(getById(id));
         userDTO.setId(userEntity.getId());

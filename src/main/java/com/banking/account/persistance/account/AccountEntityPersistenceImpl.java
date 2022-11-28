@@ -1,6 +1,7 @@
 package com.banking.account.persistance.account;
 
 import com.banking.account.dto.AccountDTO;
+import com.banking.account.dto.UserDTO;
 import com.banking.account.exception.NotFoundException;
 import com.banking.account.exception.ValidationException;
 import com.banking.account.exception.handler.ErrorCode;
@@ -29,16 +30,14 @@ import java.util.stream.Collectors;
 public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
 
     private final AccountEntityRepository accountEntityRepository;
-    private final UserEntityRepository userEntityRepository;
     private final UserEntityPersistence userEntityPersistence;
     private final ExchangeApi exchangeApi;
     private final AccountMapper accountMapper;
     private final UserMapper userMapper;
 
     @Autowired
-    public AccountEntityPersistenceImpl(AccountEntityRepository accountEntityRepository, UserEntityRepository userEntityRepository, @Lazy UserEntityPersistence userEntityPersistence, ExchangeApi exchangeApi, AccountMapper accountMapper, UserMapper userMapper) {
+    public AccountEntityPersistenceImpl(AccountEntityRepository accountEntityRepository, @Lazy UserEntityPersistence userEntityPersistence, ExchangeApi exchangeApi, AccountMapper accountMapper, UserMapper userMapper) {
         this.accountEntityRepository = accountEntityRepository;
-        this.userEntityRepository = userEntityRepository;
         this.userEntityPersistence = userEntityPersistence;
         this.exchangeApi = exchangeApi;
         this.accountMapper = accountMapper;
@@ -105,19 +104,19 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
         if (accountDTO.getId() != null) {
             throw new ValidationException("Id must be null.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
         }
-        if (Objects.isNull(accountDTO.getCurrentBalance())) {
-            throw new ValidationException("Values are not equal.", new FieldInfo("currentBalance / initialAccountBalance", ErrorCode.BAD_REQUEST));
+        if (accountDTO.getCurrentBalance() == null || accountDTO.getCurrentBalance().compareTo(BigDecimal.ZERO) < 0) {
+            throw new ValidationException("Balance cannot be negative", new FieldInfo("currentBalance", ErrorCode.BAD_REQUEST));
         }
         if (Objects.isNull(accountDTO.getUser())) {
             throw new ValidationException("Cannot create account without user data.", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
         }
+
 
         Optional<AccountEntity> optionalAccountEntity = accountEntityRepository.findAccountByUserPesel(accountDTO.getUser().getPesel());
         if (optionalAccountEntity.isPresent()) {
             throw new ValidationException("This account is already assigned to user with this pesel.", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
         }
 
-//        UserEntity userEntity = userEntityRepository.save(userMapper.fromDTO(accountDTO.getUser()));
         UserEntity userEntity = userMapper.fromDTO(userEntityPersistence.save(accountDTO.getUser()));
         AccountEntity accountWithUserToSave = prepareAccountDataToSave(accountDTO, userEntity);
         AccountEntity accountEntity = accountEntityRepository.save(accountWithUserToSave);
@@ -141,17 +140,24 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
         if (!id.equals(accountDTO.getId())) {
             throw new ValidationException("Ids are not equals.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
         }
-        AccountEntity account = accountMapper.fromDTO(getAccountById(id));
+        if (accountDTO.getCurrentBalance().compareTo(BigDecimal.ZERO) < 0) {
+            throw new ValidationException("Balance cannot be negative", new FieldInfo("currentBalance", ErrorCode.BAD_REQUEST));
+        }
+        getAccountById(id);
+        AccountEntity account = accountMapper.fromDTO(accountDTO);
         accountDTO.setId(account.getId());
         AccountEntity updatedAccount = accountEntityRepository.save(account);
-        return accountMapper.toDTO(updatedAccount);
+        UserDTO updatedUser = userEntityPersistence.update(accountDTO.getUser(), updatedAccount.getId());
+        AccountDTO result = accountMapper.toDTO(updatedAccount);
+        result.setUser(updatedUser);
+        return result;
     }
 
     @Override
     public void delete(Long id) {
         AccountDTO currentAccount = getAccountById(id);
-        if (!Objects.equals(currentAccount.getCurrentBalance(), BigDecimal.ZERO)) {
-            throw new ValidationException("Cannot delete account with activate balance.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
+        if (BigDecimal.ZERO.equals(currentAccount.getCurrentBalance())) {
+            throw new ValidationException("Cannot delete account with not null balance.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
         }
         accountEntityRepository.delete(accountMapper.fromDTO(currentAccount));
     }

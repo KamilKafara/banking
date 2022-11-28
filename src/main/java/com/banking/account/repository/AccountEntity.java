@@ -25,7 +25,7 @@ public class AccountEntity {
     private CurrencyType currencyType;
     private BigDecimal currentBalance;
 
-    @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @JsonManagedReference
     private UserEntity user;

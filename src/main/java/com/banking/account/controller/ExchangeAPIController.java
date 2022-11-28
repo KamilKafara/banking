@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/exchange")
+@RequestMapping(value = "/exchange")
 public class ExchangeAPIController {
     private final ExchangeApi exchangeApi;
 
