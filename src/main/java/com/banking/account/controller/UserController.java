@@ -27,7 +27,7 @@ public class UserController {
     }
 
     @GetMapping("/pesel/{pesel}")
-    public UserDTO getUserByPesel(@PathVariable("pesel") Long pesel) {
+    public UserDTO getUserByPesel(@PathVariable("pesel") String pesel) {
         return userEntityPersistence.getByPesel(pesel);
     }
 

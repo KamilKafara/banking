@@ -14,7 +14,6 @@ import com.banking.account.persistance.user.UserEntityPersistence;
 import com.banking.account.repository.AccountEntity;
 import com.banking.account.repository.AccountEntityRepository;
 import com.banking.account.repository.UserEntity;
-import com.banking.account.repository.UserEntityRepository;
 import com.banking.account.utils.mapper.AccountMapper;
 import com.banking.account.utils.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +90,7 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
     }
 
     @Override
-    public AccountDTO getAccountByUserPesel(Long pesel) {
+    public AccountDTO getAccountByUserPesel(String pesel) {
         Optional<AccountEntity> accountEntity = accountEntityRepository.findAccountByUserPesel(pesel);
         if (accountEntity.isEmpty()) {
             throw new NotFoundException("Not found account assigned to user with this pesel {" + pesel + "}.");
@@ -101,6 +100,15 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
 
     @Override
     public AccountDTO save(AccountDTO accountDTO) {
+        validateAccountToSave(accountDTO);
+
+        UserEntity userEntity = userMapper.fromDTO(userEntityPersistence.save(accountDTO.getUser()));
+        AccountEntity accountWithUserToSave = prepareAccountDataToSave(accountDTO, userEntity);
+        AccountEntity accountEntity = accountEntityRepository.save(accountWithUserToSave);
+        return prepareDTOData(userEntity, accountEntity);
+    }
+
+    private void validateAccountToSave(AccountDTO accountDTO) {
         if (accountDTO.getId() != null) {
             throw new ValidationException("Id must be null.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
         }
@@ -111,16 +119,10 @@ public class AccountEntityPersistenceImpl implements AccountEntityPersistence {
             throw new ValidationException("Cannot create account without user data.", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
         }
 
-
         Optional<AccountEntity> optionalAccountEntity = accountEntityRepository.findAccountByUserPesel(accountDTO.getUser().getPesel());
         if (optionalAccountEntity.isPresent()) {
             throw new ValidationException("This account is already assigned to user with this pesel.", new FieldInfo("userDTO", ErrorCode.BAD_REQUEST));
         }
-
-        UserEntity userEntity = userMapper.fromDTO(userEntityPersistence.save(accountDTO.getUser()));
-        AccountEntity accountWithUserToSave = prepareAccountDataToSave(accountDTO, userEntity);
-        AccountEntity accountEntity = accountEntityRepository.save(accountWithUserToSave);
-        return prepareDTOData(userEntity, accountEntity);
     }
 
     private AccountEntity prepareAccountDataToSave(AccountDTO accountDTO, UserEntity userEntity) {

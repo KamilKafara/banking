@@ -26,7 +26,7 @@ public class UserEntity {
     private String secondName;
     @PESEL
     @Column(unique = true, length = 11)
-    private Long pesel;
+    private String pesel;
     @JsonManagedReference
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private List<AccountEntity> accounts;

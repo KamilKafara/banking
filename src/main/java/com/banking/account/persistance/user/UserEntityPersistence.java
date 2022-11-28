@@ -17,5 +17,5 @@ public interface UserEntityPersistence {
 
     void delete(Long id);
 
-    UserDTO getByPesel(Long pesel);
+    UserDTO getByPesel(String pesel);
 }

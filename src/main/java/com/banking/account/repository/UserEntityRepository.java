@@ -7,5 +7,5 @@ import java.util.Optional;
 
 @Repository
 public interface UserEntityRepository extends JpaRepository<UserEntity, Long> {
-    Optional<UserEntity> findByPesel(Long pesel);
+    Optional<UserEntity> findByPesel(String pesel);
 }

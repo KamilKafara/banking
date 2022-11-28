@@ -14,7 +14,7 @@ import com.banking.account.repository.UserEntityRepository;
 import com.banking.account.utils.mapper.AccountMapper;
 import com.banking.account.utils.mapper.UserMapper;
 import com.banking.account.utils.validate.PeselValidator;
-import com.google.common.collect.Lists;
+import org.hibernate.validator.internal.constraintvalidators.hv.pl.PESELValidator;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -63,7 +63,7 @@ class UserEntityPersistenceImpl implements UserEntityPersistence {
     }
 
     @Override
-    public UserDTO getByPesel(Long pesel) {
+    public UserDTO getByPesel(String pesel) {
         String number = String.valueOf(pesel);
         PeselValidator.validate(number);
         Optional<UserEntity> userEntity = userEntityRepository.findByPesel(pesel);
@@ -75,22 +75,7 @@ class UserEntityPersistenceImpl implements UserEntityPersistence {
 
     @Override
     public UserDTO save(UserDTO userDTO) {
-        if (userDTO.getId() != null) {
-            throw new ValidationException("Id must be null.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
-        }
-        if (userDTO.getPesel() == null) {
-            throw new ValidationException("Pesel cannot be null.", new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
-        }
-
-        PeselValidator.validate(userDTO.getPesel());
-        Optional<UserEntity> userEntityOptional = userEntityRepository.findByPesel(userDTO.getPesel());
-        userEntityOptional.ifPresent(u -> {
-                    throw new ValidationException("User with this pesel already exist.", new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
-                }
-        );
-        if (userDTO.getAccount() != null && userDTO.getAccount().getCurrentBalance().compareTo(BigDecimal.ZERO) < 0) {
-            throw new ValidationException("Balance cannot be negative", new FieldInfo("currentBalance", ErrorCode.BAD_REQUEST));
-        }
+        validateUserToSave(userDTO);
         UserEntity savedUserEntity = userEntityRepository.save(userMapper.fromDTO(userDTO));
         UserDTO savedUserDTO = userMapper.toDTO(savedUserEntity);
         if (savedUserDTO.getAccount() != null) {
@@ -101,6 +86,24 @@ class UserEntityPersistenceImpl implements UserEntityPersistence {
             accountEntityPersistence.setupSupportedCurrencies(savedUserDTO.getAccount());
         }
         return savedUserDTO;
+    }
+
+    private void validateUserToSave(UserDTO userDTO) {
+        if (userDTO.getId() != null) {
+            throw new ValidationException("Id must be null.", new FieldInfo("id", ErrorCode.BAD_REQUEST));
+        }
+        if (userDTO.getPesel() == null) {
+            throw new ValidationException("Pesel cannot be null.", new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
+        }
+        PeselValidator.validate(userDTO.getPesel());
+        Optional<UserEntity> userEntityOptional = userEntityRepository.findByPesel(userDTO.getPesel());
+        userEntityOptional.ifPresent(u -> {
+                    throw new ValidationException("User with this pesel already exist.", new FieldInfo("pesel", ErrorCode.BAD_REQUEST));
+                }
+        );
+        if (userDTO.getAccount() != null && userDTO.getAccount().getCurrentBalance().compareTo(BigDecimal.ZERO) < 0) {
+            throw new ValidationException("Balance cannot be negative", new FieldInfo("currentBalance", ErrorCode.BAD_REQUEST));
+        }
     }
 
     @Override

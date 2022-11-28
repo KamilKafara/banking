@@ -34,7 +34,7 @@ public class AccountController  {
     }
 
     @GetMapping("/user/pesel/{pesel}")
-    public AccountDTO getAccountByUserPesel(@PathVariable("pesel") Long pesel) {
+    public AccountDTO getAccountByUserPesel(@PathVariable("pesel") String pesel) {
         return accountEntityPersistence.getAccountByUserPesel(pesel);
     }
 

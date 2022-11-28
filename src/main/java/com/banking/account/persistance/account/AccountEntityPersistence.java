@@ -11,7 +11,7 @@ public interface AccountEntityPersistence {
 
     AccountDTO getAccountByUserId(Long id);
 
-    AccountDTO getAccountByUserPesel(Long pesel);
+    AccountDTO getAccountByUserPesel(String pesel);
 
     AccountDTO save(AccountDTO accountDTO);
 

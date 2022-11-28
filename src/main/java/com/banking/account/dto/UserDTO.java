@@ -9,14 +9,14 @@ public class UserDTO {
 
     private String secondName;
 
-    private Long pesel;
+    private String pesel;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private AccountDTO account;
 
     public UserDTO() {
     }
 
-    public UserDTO(Long id, String firstName, String secondName, Long pesel, AccountDTO account) {
+    public UserDTO(Long id, String firstName, String secondName, String pesel, AccountDTO account) {
         this.id = id;
         this.firstName = firstName;
         this.secondName = secondName;
@@ -48,11 +48,11 @@ public class UserDTO {
         this.secondName = secondName;
     }
 
-    public Long getPesel() {
+    public String getPesel() {
         return pesel;
     }
 
-    public void setPesel(Long pesel) {
+    public void setPesel(String pesel) {
         this.pesel = pesel;
     }
 
