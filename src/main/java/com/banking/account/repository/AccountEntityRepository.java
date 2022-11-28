@@ -13,6 +13,7 @@ public interface AccountEntityRepository extends JpaRepository<AccountEntity, Lo
                              "FROM UserEntity u FULL JOIN AccountEntity a " +
                              "ON u.id = a.user.id ";
 
+
     @Query(FULL_JOIN_QUERY + "WHERE u.pesel = ?1")
     Optional<AccountEntity> findAccountByUserPesel(@NonNull Long pesel);
 

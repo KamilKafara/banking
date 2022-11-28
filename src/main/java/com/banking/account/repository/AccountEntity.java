@@ -1,6 +1,10 @@
 package com.banking.account.repository;
 
 import com.banking.account.exchange.rates.utils.CurrencyType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +25,8 @@ public class AccountEntity {
     private CurrencyType currencyType;
     private BigDecimal currentBalance;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JsonManagedReference
     private UserEntity user;
 }

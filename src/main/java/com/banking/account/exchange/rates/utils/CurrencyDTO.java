@@ -15,4 +15,15 @@ public class CurrencyDTO {
     private String currency;
     private String code;
     private BigDecimal mid;
+
+    private static final String CURRENCY_PLN_NAME = "Polski złoty";
+
+    public static CurrencyDTO initDefaultCurrency() {
+        CurrencyDTO currencyDTO = new CurrencyDTO();
+        currencyDTO.setCurrency(CURRENCY_PLN_NAME);
+        currencyDTO.setMid(BigDecimal.ONE);
+        currencyDTO.setCode(CurrencyType.PLN.name());
+        return currencyDTO;
+    }
+
 }

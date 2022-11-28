@@ -1,10 +1,7 @@
 package com.banking.account.controller;
 
 import com.banking.account.exchange.rates.ExchangeApi;
-import com.banking.account.exchange.rates.utils.CurrencyDTO;
-import com.banking.account.exchange.rates.utils.CurrencyType;
-import com.banking.account.exchange.rates.utils.ExchangeType;
-import com.banking.account.exchange.rates.utils.TableDTO;
+import com.banking.account.exchange.rates.utils.*;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,10 +33,10 @@ public class ExchangeAPIController {
     }
 
     @GetMapping("/exchange")
-    public BigDecimal exchange(ExchangeType type,
-                               CurrencyType sourceCurrencyType,
-                               CurrencyType targetCurrencyType,
-                               BigDecimal valueToConvert) throws IOException {
+    public ExchangeDTO exchange(ExchangeType type,
+                                CurrencyType sourceCurrencyType,
+                                CurrencyType targetCurrencyType,
+                                BigDecimal valueToConvert) throws IOException {
         return exchangeApi.exchangeRate(type, sourceCurrencyType, targetCurrencyType, valueToConvert);
     }
 }

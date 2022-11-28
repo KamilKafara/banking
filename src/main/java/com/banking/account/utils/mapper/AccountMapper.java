@@ -21,6 +21,9 @@ public class AccountMapper {
         account.setId(accountDTO.getId());
         account.setCurrencyType(accountDTO.getAccountCurrencyType());
         account.setCurrentBalance(accountDTO.getCurrentBalance());
+        if (accountDTO.getUser() != null) {
+            account.setUser(userMapper.fromDTO(accountDTO.getUser()));
+        }
         return account;
     }
 

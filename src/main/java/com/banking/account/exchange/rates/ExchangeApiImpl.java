@@ -1,10 +1,7 @@
 package com.banking.account.exchange.rates;
 
 import com.banking.account.exception.NotFoundException;
-import com.banking.account.exchange.rates.utils.CurrencyDTO;
-import com.banking.account.exchange.rates.utils.CurrencyType;
-import com.banking.account.exchange.rates.utils.ExchangeType;
-import com.banking.account.exchange.rates.utils.TableDTO;
+import com.banking.account.exchange.rates.utils.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
@@ -45,11 +42,7 @@ public class ExchangeApiImpl implements ExchangeApi {
             throw new NotFoundException("Not found any data");
         }
         if (CurrencyType.PLN.test(currencyType)) {
-            CurrencyDTO currencyDTO = new CurrencyDTO();
-            currencyDTO.setCurrency("Polski złoty");
-            currencyDTO.setMid(BigDecimal.ONE);
-            currencyDTO.setCode(currencyType.name());
-            return currencyDTO;
+            return CurrencyDTO.initDefaultCurrency();
         }
         Optional<CurrencyDTO> currencyDTOS = item.get().getRates().stream()
                 .filter(it -> it.getCode().equalsIgnoreCase(currencyType.name()))
@@ -61,10 +54,10 @@ public class ExchangeApiImpl implements ExchangeApi {
     }
 
     @Override
-    public BigDecimal exchangeRate(ExchangeType type,
-                                   CurrencyType source,
-                                   CurrencyType target,
-                                   BigDecimal basicValue) throws IOException {
+    public ExchangeDTO exchangeRate(ExchangeType type,
+                                    CurrencyType source,
+                                    CurrencyType target,
+                                    BigDecimal basicValue) throws IOException {
         BigDecimal targetValue = BigDecimal.ONE;
         BigDecimal sourceValue = BigDecimal.ONE;
         if (!CurrencyType.PLN.test(source)) {
@@ -75,6 +68,12 @@ public class ExchangeApiImpl implements ExchangeApi {
         }
         BigDecimal exchangeRate = sourceValue.divide(targetValue, DEFAULT_SCALE, RoundingMode.UP);
         BigDecimal result = exchangeRate.multiply(basicValue);
-        return result.setScale(DEFAULT_SCALE, RoundingMode.UP);
+        return ExchangeDTO.builder()
+                .exchangeType(type)
+                .sourceValue(basicValue)
+                .targetValue(result)
+                .currencySource(source)
+                .currencyTarget(target).build();
+
     }
 }
